@@ -29,7 +29,15 @@ else
 fi
 mount -t nfs -overs=3,ro "$ANSIBLENFSMOUNT" /provisioner
 cd "/provisioner/$ANSIBLENFSDIR"
-ansible-playbook node-startup.yml
+
+#run public startups for all hpc - this is on github
+ansible-playbook generic-node-startup.yml
+
+#run customer startup if exists - this isnt on github
+if [ -f  customer-node-startup.yml ]; then 
+  ansible-playbook customer-node-startup.yml
+fi
+
 cd /
 sleep 1
 umount /provisioner
