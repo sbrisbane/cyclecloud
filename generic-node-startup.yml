@@ -26,7 +26,7 @@
        user:
           name: securelinx
           shell: /bin/bash
-          group: ventosusr
+          group: admins
           groups: admins
           uid: 599
           home: "{{ homebase }}/securelinx"
