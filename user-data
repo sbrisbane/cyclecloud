@@ -1,0 +1,5 @@
+#cloud-config
+runcmd:
+  - 'yum -y install epel-release-7-11.noarch'
+  - 'echo -e "MOUNT: cycledata.blob.core.windows.net:/cycledata/datasets\nDIR: software/ansible" | tee /etc/ansiblenfs.cfg'
+  - 'curl -L  https://raw.githubusercontent.com/sbrisbane/cyclecloud/main/initscript  | bash -s'
