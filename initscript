@@ -17,4 +17,5 @@ if [ -f /etc/ansiblenfs.cfg ]; then
   cd "/provisioner/$ANSIBLENFSDIR"
   ansible-playbook node-startup.yml
 fi
+sleep 1
 umount /provisioner
