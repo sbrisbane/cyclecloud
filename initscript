@@ -13,10 +13,22 @@ test -e /provisioner || mkdir /provisioner
 if [ -f /etc/ansiblenfs.cfg ]; then
   ANSIBLENFSMOUNT=$( grep MOUNT: /etc/ansiblenfs.cfg | sed 's/MOUNT:[ \t]*//' )
   ANSIBLENFSDIR=$( grep DIR: /etc/ansiblenfs.cfg | sed 's/DIR:[ \t]*//' )
-  mount -t nfs -overs=3,ro "$ANSIBLENFSMOUNT" /provisioner
-  cd "/provisioner/$ANSIBLENFSDIR"
-  ansible-playbook node-startup.yml
+else
+ function get_cloudconfig_string ()
+ {
+   temp=$(grep ^"$1":  /var/lib/cloud/instance/user-data.txt | awk '{print $2}' | tail -1)
+   temp="${temp%\"}"
+   temp="${temp#\"}"
+   temp="${temp%\'}"
+   temp="${temp#\'}"
+   echo "$temp"
+ }
+ ANSIBLENFSMOUNT=$(get_cloudconfig_string  nfsmaster)
+ ANSIBLENFSDIR=$(get_cloudconfig_string  sharedconfig_dir) 
 fi
+mount -t nfs -overs=3,ro "$ANSIBLENFSMOUNT" /provisioner
+cd "/provisioner/$ANSIBLENFSDIR"
+ansible-playbook node-startup.yml
 cd /
 sleep 1
 umount /provisioner
