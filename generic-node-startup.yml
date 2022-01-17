@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  name: firstruns
+  #vars can be overriden in site_vars
+  vars:
+      homebase: "/home"
+  tasks:
+     - file:
+         name: site_vars
+         state: directory
+     - include_vars:
+         dir: site_vars
+     - name: sudoers group
+       group:
+          name: admins
+          gid: 599
+     - name: admin sudo
+       copy:
+          dest: /etc/sudoers.d/admins
+          mode: "0600"
+          content: |
+            %admins ALL=(ALL) NOPASSWD:ALL
+            Defaults:%admins !requiretty
+
+     - name: "Added securelinx user"
+       user:
+          name: securelinx
+          shell: /bin/bash
+          group: ventosusr
+          groups: admins
+          uid: 599
+          home: "{{ homebase }}/securelinx"
+          create_home: no
+     - name: packages
+       ansible.builtin.package:
+          name:  [tcsh,  mlocate, xauth]
+          state: present
+     - name: scratch symbolic link
+       file:
+         src: "/mnt/resource"
+         dest: "/localscratch"
+         state: link
