@@ -1,0 +1,16 @@
+PKGMGR=/bin/yum
+if ! [ -e $PKGMGR ]
+PKGMGR=apt
+fi
+if ! [ -e $PKGMGR ]
+PKGMGR=zypper
+fi
+
+$PKGMGR install -y ansible
+mkdir /provisioner
+if [ -f /etc/ansiblenfs.cfg ]
+  ANSIBLENFSDIR=$( cat /etc/ansiblenfs.cfg )
+  mount -t nfs -oro ANSIBLENFSDIR /provisioner
+  cd /provisioner
+  ansible-playbook node-startup.yml
+fi
