@@ -1,4 +1,5 @@
 #!/bin/bash
+exec >/tmp/cyclecloud.log 2>&1
 PKGMGR=/bin/yum
 if ! [ -e $PKGMGR ]; then
   PKGMGR=apt
