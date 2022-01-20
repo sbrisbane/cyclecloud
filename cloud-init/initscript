@@ -29,6 +29,7 @@ else
 fi
 mount -t nfs -overs=3,ro "$ANSIBLENFSMOUNT" /provisioner
 cd "/provisioner/$ANSIBLENFSDIR"
+mkdir "/provisioner/initlogs/$(hostname -s)"
 
 #run public startups for all hpc - this is on github
 ansible-playbook generic-node-startup.yml
@@ -37,7 +38,11 @@ ansible-playbook generic-node-startup.yml
 if [ -f  customer-node-startup.yml ]; then 
   ansible-playbook customer-node-startup.yml
 fi
-
+mkdir -p "/provisioner/initlogs/$(hostname -s)"
+cp /tmp/cyclecloud.log "/provisioner/initlogs/$(hostname -s)"
 cd /
 sleep 1
-umount /provisioner
+
+umount /provisioner || umount -fl /provisioner
+sleep 5
+echo complete
