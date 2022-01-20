@@ -33,7 +33,7 @@
           create_home: no
      - name: packages
        ansible.builtin.package:
-          name:  [tcsh,  mlocate, xauth]
+          name:  [tcsh,  mlocate, xauth, screen]
           state: present
      - name: scratch symbolic link
        file:
