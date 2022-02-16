@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  name: slurm_cluster_configs
+  #vars can be overriden in site_vars
+  vars:
+      schedbase: "/sched"
+      slurm_CgroupAutomount: !!str "no"
+      slurm_ConstrainCores: !!str "no"
+      slurm_ConstrainRamSpace: !!str "no"
+      slurm_ConstrainSwapSpace: !!str "no"
+      slurm_TaskAffinity: !!str "no"
+      slurm_ConstrainDevices: "yes"
+      slurm_AccountingStorageHost: !!str "localhost"
+      #NOTE you will need to change ^ on cyclecloud
+  tasks:
+     - include_vars:
+         dir: site_vars
+     - name: scroups slurm
+       copy:
+         dest: "{{ schedbase }}/cgroups.conf"
+         content: |
+            CgroupAutomount={{ slurm_CgroupAutomount }}
+            ConstrainCores={{ slurm_ConstrainCores }}
+            ConstrainRamSpace={{ slurm_ConstrainRamSpace }}
+            ConstrainSwapSpace={{ slurm_ConstrainSwapSpace }}
+            TaskAffinity={{ slurm_TaskAffinity }}
+            ConstrainDevices={{ slurm_ConstrainDevices }}
+     - name: slurm.conf include customizations
+       lineinfile:
+          path: "{{ schedbase }}/slurm.conf"
+          line: "Include {{ schedbase }}/slurm.local.conf"
+       notify:  "restart_slurmctld"
+     - name: slurm local conf
+       template:
+         src: slurm.local.conf.j2
+         dest: "{{ schedbase }}/slurm.local.conf"
+       notify: restart_slurmctld
+  handlers:
+    - name:  "restart_slurmctld"
+      ansible.builtin.service:
+         name: slurmctld
+         state: restarted
