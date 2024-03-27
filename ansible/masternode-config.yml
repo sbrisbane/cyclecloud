@@ -1,0 +1,69 @@
+---
+- hosts: localhost
+  name: slurm_cluster_configs
+  #vars can be overriden in site_vars
+  vars:
+      schedbase: "/sched"
+      slurm_CgroupAutomount: !!str "no"
+      slurm_ConstrainCores: !!str "no"
+      slurm_ConstrainRamSpace: !!str "no"
+      slurm_ConstrainSwapSpace: !!str "no"
+      slurm_TaskAffinity: !!str "no"
+      slurm_ConstrainDevices: "yes"
+      slurm_AccountingStorageHost: !!str "localhost"
+      persistentstore: "/shared"
+      #NOTE you will need to change ^ on cyclecloud
+  tasks:
+     - include_vars:
+         dir: site_vars
+     - name: cgroups slurm
+       copy:
+         dest: "{{ schedbase }}/cgroups.conf"
+         content: |
+            CgroupAutomount={{ slurm_CgroupAutomount }}
+            ConstrainCores={{ slurm_ConstrainCores }}
+            ConstrainRamSpace={{ slurm_ConstrainRamSpace }}
+            ConstrainSwapSpace={{ slurm_ConstrainSwapSpace }}
+            TaskAffinity={{ slurm_TaskAffinity }}
+            ConstrainDevices={{ slurm_ConstrainDevices }}
+     - name: slurm.conf include customizations
+       lineinfile:
+          path: "{{ schedbase }}/slurm.conf"
+          line: "Include {{ schedbase }}/slurm.local.conf"
+       notify:  [ "clean_slurmctld", "restart_slurmctld" ]
+     - name: munge key cluster
+       copy:
+         src: "{{ persistentstore }}/munge/munge.key"
+         dest: "{{ schedbase }}/munge/munge.key"
+         mode: "0600"
+     - name: munge key master
+       copy:
+         dest: "/etc/munge/munge.key"
+         src: "{{ schedbase }}/munge/munge.key"
+         mode: "0600"
+       notify: [restart_slurmctld, restart_munge]
+     - name: slurm local conf
+       template:
+         src: slurm.local.conf.j2
+         dest: "{{ schedbase }}/slurm.local.conf"
+       notify:  [ "clean_slurmctld", "restart_slurmctld" ]
+
+  handlers:
+    - name: clean_slurmctld
+      file:
+        path: "/var/spool/slurmd"
+        state: "{{ item }}"
+        owner: slurm
+        group: root
+        mode: "0755"
+      loop:
+        - absent
+        - directory
+    - name: restart_munge
+      ansible.builtin.service:
+        name: munge
+        state: restarted
+    - name:  "restart_slurmctld"
+      ansible.builtin.service:
+         name: slurmctld
+         state: restarted

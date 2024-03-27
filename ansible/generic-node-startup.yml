@@ -4,6 +4,8 @@
   #vars can be overriden in site_vars
   vars:
       homebase: "/home"
+      configurenis: false
+      disable_networkmanager: false
   tasks:
      - file:
          name: site_vars
@@ -27,7 +29,6 @@
           name: securelinx
           shell: /bin/bash
           group: admins
-          groups: admins
           uid: 599
           home: "{{ homebase }}/securelinx"
           create_home: no
@@ -40,3 +41,19 @@
          src: "/mnt/resource"
          dest: "/localscratch"
          state: link
+     - name: ssh_config_user_skel
+       file:
+          path: /etc/skel/.ssh
+          state: directory
+     - name: ssh_config_user
+       copy:
+          dest: /etc/skel/.ssh/config
+          content: |
+                host *
+                  CheckHostIP no
+                  StrictHostKeyChecking no
+                  UserKnownHostsFile /dev/null
+     - name: setup nis
+       include_role:
+          name:  nis_client
+       when: configurenis|default(false)|bool  == true
