@@ -39,7 +39,7 @@ else
 fi
 mount -t nfs -overs=3,rw "$ANSIBLENFSMOUNT" /provisioner
 cd "/provisioner/$ANSIBLENFSDIR"
-mkdir "/provisioner/initlogs/$(hostname -s)"
+mkdir -p "/provisioner/initlogs/$(hostname -s)"
 
 
 source /provisioner/ansible-venv/bin/activate
