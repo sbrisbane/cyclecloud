@@ -17,7 +17,7 @@ fi
 $PKGMGR -y module install python38
 #python3.8 -m venv ansible /data/software/el8/python/venvs/ansible2
 
-source /data/software/el8/python/venvs/ansible2/bin/activate
+#source /data/software/el8/python/venvs/ansible2/bin/activate
 
 #$PKGMGR install -y ansible
 test -e /provisioner || mkdir /provisioner
@@ -59,6 +59,6 @@ cp /tmp/cyclecloud.log "/provisioner/initlogs/$(hostname -s)"
 cd /
 sleep 1
 
-#umount /provisioner || umount -fl /provisioner
+umount /provisioner || umount -fl /provisioner
 sleep 5
 echo complete
