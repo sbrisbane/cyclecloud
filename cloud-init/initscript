@@ -9,6 +9,14 @@ if ! [ -e $PKGMGR ]; then
 PKGMGR=zypper
 fi
 
+if grep -q "elease 7" /etc/centos-release  ; 
+then
+  /bin/rm -f /etc/yum.repos.d/Cent*
+  curl -L  https://raw.githubusercontent.com/securelinx/cyclecloud/main/artefacts/CENTOS7-VAULT.repo > /etc/yum.repos.d/CENTOS7-VAULT.repo
+  sed -i 's/^\(metalink.*\)$/#\1/; s/^#\(baseurl.*\)$/\1/; s#http://download.fedoraproject.org/pub/epel/7/#https://dl.fedoraproject.org/pub/archive/epel/7.9/#' /etc/yum.repos.d/epel.repo
+  $PKGMGR -y install nfs-utils
+fi
+
 $PKGMGR install -y ansible
 test -e /provisioner || mkdir /provisioner
 if [ -f /etc/ansiblenfs.cfg ]; then
