@@ -42,7 +42,8 @@ cd "/provisioner/$ANSIBLENFSDIR"
 mkdir -p "/provisioner/initlogs/$(hostname -s)"
 
 
-source /provisioner/ansible-venv/bin/activate
+source /provisioner/$ANSIBLENFSDIR/ansible-venv/bin/activate
+
 #create env like this
 #pip install --upgrade pip
 #pip install ansible
