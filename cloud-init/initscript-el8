@@ -41,6 +41,12 @@ mount -t nfs -overs=3,rw "$ANSIBLENFSMOUNT" /provisioner
 cd "/provisioner/$ANSIBLENFSDIR"
 mkdir "/provisioner/initlogs/$(hostname -s)"
 
+
+source /provisioner/ansible-venv/bin/activate
+#create env like this
+#pip install --upgrade pip
+#pip install ansible
+
 #run public startups for all hpc - this is on github
 ansible-playbook generic-node-startup.yml
 
