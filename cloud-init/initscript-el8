@@ -1,0 +1,65 @@
+#!/bin/bash
+exec >/tmp/cyclecloud.log 2>&1
+PKGMGR=/bin/yum
+if ! [ -e $PKGMGR ]; then
+  PKGMGR=apt
+
+fi
+if ! [ -e $PKGMGR ]; then
+PKGMGR=zypper
+fi
+
+if grep -q "elease 7" /etc/centos-release  ; 
+then
+  /bin/rm -f /etc/yum.repos.d/Cent*
+  $PKGMGR -y install nfs-utils
+fi
+$PKGMGR -y module install python38
+#python3.8 -m venv ansible /data/software/el8/python/venvs/ansible2
+
+#source /data/software/el8/python/venvs/ansible2/bin/activate
+
+#$PKGMGR install -y ansible
+test -e /provisioner || mkdir /provisioner
+if [ -f /etc/ansiblenfs.cfg ]; then
+  ANSIBLENFSMOUNT=$( grep MOUNT: /etc/ansiblenfs.cfg | sed 's/MOUNT:[ \t]*//' )
+  ANSIBLENFSDIR=$( grep DIR: /etc/ansiblenfs.cfg | sed 's/DIR:[ \t]*//' )
+else
+ function get_cloudconfig_string ()
+ {
+   temp=$(grep ^"$1":  /var/lib/cloud/instance/user-data.txt | awk '{print $2}' | tail -1)
+   temp="${temp%\"}"
+   temp="${temp#\"}"
+   temp="${temp%\'}"
+   temp="${temp#\'}"
+   echo "$temp"
+ }
+ ANSIBLENFSMOUNT=$(get_cloudconfig_string  nfsmaster)
+ ANSIBLENFSDIR=$(get_cloudconfig_string  sharedconfig_dir) 
+fi
+mount -t nfs -overs=3,rw "$ANSIBLENFSMOUNT" /provisioner
+cd "/provisioner/$ANSIBLENFSDIR"
+mkdir -p "/provisioner/initlogs/$(hostname -s)"
+
+
+source /provisioner/$ANSIBLENFSDIR/ansible-venv/bin/activate
+
+#create env like this
+#pip install --upgrade pip
+#pip install ansible
+
+#run public startups for all hpc - this is on github
+ansible-playbook generic-node-startup.yml
+
+#run customer startup if exists - this isnt on github
+if [ -f  customer-node-startup.yml ]; then 
+  ansible-playbook customer-node-startup.yml
+fi
+mkdir -p "/provisioner/initlogs/$(hostname -s)"
+cp /tmp/cyclecloud.log "/provisioner/initlogs/$(hostname -s)"
+cd /
+sleep 1
+
+umount /provisioner || umount -fl /provisioner
+sleep 5
+echo complete
