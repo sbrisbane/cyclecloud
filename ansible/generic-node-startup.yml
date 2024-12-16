@@ -2,18 +2,18 @@
 - hosts: localhost
   name: firstruns
   #vars can be overriden in site_vars
-  vars:
+  vars: 
       homebase: "/home"
       configurenis: false
       disable_networkmanager: false
   tasks:
-     - file:
+     - file: 
          name: site_vars
          state: directory
      - include_vars:
          dir: site_vars
      - name: sudoers group
-       group:
+       group: 
           name: admins
           gid: 599
      - name: admin sudo
@@ -23,7 +23,7 @@
           content: |
             %admins ALL=(ALL) NOPASSWD:ALL
             Defaults:%admins !requiretty
-
+          
      - name: "Added securelinx user"
        user:
           name: securelinx
@@ -34,7 +34,7 @@
           create_home: no
      - name: packages
        ansible.builtin.package:
-          name:  [tcsh,  mlocate, xauth, screen]
+          name:  [lvm2, tcsh,  mlocate, xauth, screen, environment-modules]
           state: present
      - name: scratch symbolic link
        file:
@@ -48,8 +48,8 @@
      - name: ssh_config_user
        copy:
           dest: /etc/skel/.ssh/config
-          content: |
-                host *
+          content: | 
+                host * 
                   CheckHostIP no
                   StrictHostKeyChecking no
                   UserKnownHostsFile /dev/null
@@ -57,3 +57,13 @@
        include_role:
           name:  nis_client
        when: configurenis|default(false)|bool  == true
+     - name: Change file ownership, group and permissions
+       ansible.builtin.file:
+         path: /mnt/resource
+         owner: root
+         group: root
+         mode: '1777'     
+     - name: Ensure munge is restarted
+       ansible.builtin.service:
+         name: munge
+         state: restarted
