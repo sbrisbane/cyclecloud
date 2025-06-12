@@ -34,8 +34,15 @@
           create_home: no
      - name: packages
        ansible.builtin.package:
-          name:  [lvm2, tcsh,  mlocate, xauth, screen, environment-modules]
+          name:  [lvm2, tcsh,  mlocate, xauth, screen, environment-modules, rsync]
           state: present
+    # Create the /mnt/resource directory and ensure it is world writable.  
+    # There are no checks to ensure this is actually a large ssd and not the root fielsystem
+     - name: Create /mnt/resource directory on all nodes - assumes this is normally a large ssd.
+       file:
+         state: directory
+         mode: "1777"
+         path: "/mnt/resource"
      - name: scratch symbolic link
        file:
          src: "/mnt/resource"
