@@ -67,3 +67,7 @@
       ansible.builtin.service:
          name: slurmctld
          state: restarted
+    - ansible.builtin.package:
+         name:  ['vim']
+         state: present
+
