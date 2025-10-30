@@ -38,9 +38,12 @@ else
  ANSIBLENFSDIR=$(get_cloudconfig_string  sharedconfig_dir) 
 fi
 mount -t nfs -overs=3,rw "$ANSIBLENFSMOUNT" /provisioner
+
 cd "/provisioner/$ANSIBLENFSDIR"
 mkdir -p "/provisioner/initlogs/$(hostname -s)"
 
+exec > "/provisioner/initlogs/$(hostname -s)/slxoutput.log" 2>&1
+cp /tmp/cyclecloud.log "/provisioner/initlogs/$(hostname -s)"
 
 source /provisioner/$ANSIBLENFSDIR/ansible-venv/bin/activate
 
@@ -55,11 +58,11 @@ ansible-playbook generic-node-startup.yml
 if [ -f  customer-node-startup.yml ]; then 
   ansible-playbook customer-node-startup.yml
 fi
-mkdir -p "/provisioner/initlogs/$(hostname -s)"
-cp /tmp/cyclecloud.log "/provisioner/initlogs/$(hostname -s)"
+
 cd /
 sleep 1
 
 umount /provisioner || umount -fl /provisioner
 sleep 5
 echo complete
+
